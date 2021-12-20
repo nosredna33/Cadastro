@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Certificado emitido pelo Gerador de chaves, do lado clienteda iLoca</title>
+  
+	<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png">
+	<meta name="apple-mobile-web-app-title" content="Certificado emitido pelo Gerador de chaves, do lado clienteda iLoca">
+	<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico">
+	<link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111">
+
+	<style>
+		@import url('https://fonts.googleapis.com/css?family=Saira+Condensed:700');
+
+		hr {
+		  background-color: #be2d24;
+		  height: 3px;
+		  margin: 5px;
+		}
+
+		div#cert-footer {
+		  position: absolute;
+		  width: 60%;
+		  top: 550px;
+		  text-align: center;
+		}
+
+		#cert-stamp, #cert-ceo-sign {
+			width: 40%;
+			display: inline-block;
+			margin-top: -95px;
+		}
+		
+		div#cert-issued-by, div#cert-ceo-design {
+		  width: 40%;
+		  display: inline-block;
+		  float: left;
+		}
+		
+		div#cert-ceo-design {
+		  margin-left: 10%;
+		}
+
+		h1 {
+		  font-family: 'Saira Condensed', sans-serif;
+		  margin: 5px 0px;
+		}
+
+		body {
+		  width: 950px;
+		  height: 690px;
+		  position: absolute;
+		  left: 30px;
+		  top: 30px;
+		  border: 3px solid red;
+		}
+
+		p {
+		  font-family: 'Arial', sans-serif;
+		  font-size: 18px;
+		  margin: 5px 0px;
+		}
+
+		html {
+		  display: inline-block;
+		  width: 1024px;
+		  height: 768px;
+		  border: 2px solid red;
+		  background: #eee url("https://i.pinimg.com/originals/b3/17/db/b317db24945589699a4ef18150dc5b73.jpg") no-repeat; background-size: 100%;
+		}
+
+		h1#cert-holder {
+		  font-size: 50px;
+		  color: #be2d24;
+		}
+
+		p.smaller {
+		  font-size: 17px !important;
+		}
+
+		div#cert-desc {
+		  width: 70%;
+		}
+		
+		div#meuDiv {
+		  width: 60%;
+		  display: inline-block;
+		  float: right;	  
+		}
+		p#cert-from, p#cert-issued { 
+		  color: #be2d24;
+		  font-family: 'Saira Condensed', sans-serif;
+		  font-size: 14px;
+		  display: inline-block;
+		  float: right;
+		}
+		
+		div#cert-verify {
+		  opacity: 1;
+		  position: absolute;
+		  top: 680px;
+		  left: 60%;
+		  font-size: 12px;
+		  color: grey;
+		}
+	</style>
+</head>
+	<body>
+		<center><h1 id="cert-title"> Certificado de Credencial do iLoca </h1></center>
+		<p class="smaller" id="cert-declaration">&nbsp;  &nbsp; &nbsp; &nbsp; <b><big>i</big>Loca</b> certifica 
+		que o usuário identificado pelo CPF: <i><b>@@cpf@@</b></i>, aceita os termos e condições dos serviços 
+		prestados deste provedor de serviços, ficando, deste momento em diante, devidamente credenciado para 
+		usar os serviços assumindo o compromisso de não permitir ou promover o vazamento de dados, fazendo uso 
+		desta credencial, nem tampouco compartilhar esta <i><b>Chave Privada</b></i>, usada como sua assinatura 
+		digital, inequívoca e intransferível.</p>
+		<table>
+			<tr>	
+				<td><h4 id="cert-holder"> Chave Privada Criptografada </h4></td>
+				<td><h4 id="cert-holder"> Senha gerada pelo servidor </h4></td>
+			</tr>
+			<tr>	
+				<td><pre><code>@@privatekey@@</code></pre></td>
+				<td style="align-content: center; text-align: center; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; background-color: #c80000; color: #ffffff;">@@pwd@@</td>
+			</tr>
+		</table>
+		<div class="meuDiv" >
+			<p id="cert-from"   ><b>Por: iloca.com.br</b></p><br>
+			<p id="cert-from"   ><b>Emitido em:</b> @@data@@. </p><br>
+		</div>
+		<div id="cert-footer">
+			<div id="cert-issued-by">
+				<img id="cert-stamp" src="imagens/Assinatura.png">
+				<hr>
+				<p>Emitido por<br>iloca.com.br</p>
+			</div>
+			<div id="cert-ceo-design">
+				<img id="cert-ceo-sign" src="imagens/Assinatura.png"> 
+				<hr>
+				<p>Diretotr de Tecnologia<br>da iLoca.com.br</p>
+			</div>
+		</div>
+		<div id="cert-verify"> Você pode verificar a veracidde deste certificado acessando:<a href="https://iloca.com.br/verify/XYZ12ER56129F">XYZ12ER56129F</a>.
+		<br> 
+		A iLoca.com.br confirma a inscrição deste indivíduo junto a nossa instituição.
+		</div>
+	</body>
+</html>

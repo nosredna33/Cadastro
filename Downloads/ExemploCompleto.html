@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Gerador do par de chaves, do lado cliente, para criação de credenciais</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="css/style.css"/>
+	<link rel="stylesheet" href="css/bootstrap.min.css" media="screen">
+	<link rel="stylesheet" href="css/Site.css" >
+	<link rel="stylesheet"  href="css/1.css" >
+
+	<script src="js/jquery.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/jsencrypt.min.js"></script>
+</head>
+<body>
+    <div class=container>
+        <H3>Dados para geração de Credencial</H3>
+        <label for="inputEmail" class="sr-only">E-mail:</label>
+        <input type="email" id="inputEmail" name="inputEmail" class="form-control" placeholder="nome@saude.gov.br" required="" autofocus="">
+        <label for="cnesID" class="sr-only">CNES:</label>
+        <input type="text" id="cnesID" name="cnesID" class="form-control" placeholder="0000000" required="" autofocus="">
+        <label for="cpfID" class="sr-only">CPF:</label>
+        <input type="text" id="cpfID" name="cpfID" class="form-control" placeholder="000.000.000-00" required="" autofocus="">
+        <label for="cnsID" class="sr-only">CNS:</label>
+        <input type="text" id="cnsID" name="cnsID" class="form-control" placeholder="000 0000 0000 0000" required="" autofocus="">
+    </div>
+    <div class=container>
+        <button class="btn-rsa" id="genkey" name="genkey">Gerar Chaves de: </button>
+        <div class="btn-group">
+            <div class="input-group">
+                <span class="input-group-addon">Tamanho da chave</span>
+                <button class="btn btn-default dropdown-toggle" id="key-size" name="key-size" type="button" data-value="1024" data-toggle="dropdown">1024 bit <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    <li><a class="change-key-size" data-value="512" href="#">512 bit</a></li>
+                    <li><a class="change-key-size" data-value="1024" href="#">1024 bit</a></li>
+                    <li><a class="change-key-size" data-value="2048" href="#">2048 bit</a></li>
+                    <li><a class="change-key-size" data-value="4096" href="#">4096 bit</a></li>
+                </ul>
+            </div>
+        </div>
+        <span>
+            <p id="time-report" name="time-report"> </p>
+        </span>
+        <H3>Chave Pública:</H3>
+        <textarea id="publickey"  name="publickey" ></textarea>
+        <H3>Chave Privada:</H3>
+        <textarea id="privatekey" name="privatekey"></textarea>
+    </div>
+    <div class=container>
+        <H3>Credencial gerada</H3>
+        <button class="btn-rsa" id="get" name="get">Obter credencial gerada pelo servidor</button>
+        <label for="endata-get" class="sr-only">credencial gerada pelo servidor criptografada</label>
+        <textarea id="endata-get" name="endata-get"></textarea>
+        <H2>Senha que deverá ser usada nas crdenciais de APIs</H2>
+        <label for="cleartext" class="sr-only">Credencial gerada pelo servidor legível por humanos</label>
+        <input type="text" id="cleartext" name="cleartext"></input>
+    </div>
+    <div class=container>
+        <H3>Salvar documento da chaves?</H3>
+        <button class="btn-rsa" id="print" name="print">Imprimir para PDF e salvar</button>
+    </div>
+		
+	<div class=container>
+		<hr>
+	</div>
+	
+	<div class=container>
+		<div class="divTablefullwidth">
+			<div class="divTableBody">
+				<div class="divTableRow">
+					<div class="divTableCell" style="float: left;">
+						<h1>Sem sair daqui você pode criptografar / decriptografar seu PDF</h1>
+						<!-- <h4>Use your web browser to encrypt and decrypt files.</h4> -->
+					</div>
+					<div class="divTableCell" style="float: left;">
+						<h1>
+						<!--<button id="btnRefresh" onClick="javascript:location.reload();">Refresh Page</button> -->
+						<button id="btnDivEncrypt" onClick="javascript:switchdiv('encrypt');">Criprografar Arquivo</button>
+						<button id="btnDivDecrypt" onClick="javascript:switchdiv('decrypt');">Decriptografar Arquivo</button>
+						</h1>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class=container>
+		<hr>
+	</div>
+
+	<div class="container" id=divEncryptfile>
+		<h2>Criptografar o PDF gerado</h2>
+		<p>ATENÇÃO! Não use a  <i><b>senha gerada pelo SERVIDOR</b></i> para criptografar o PDF! 
+		Use <b><i>OUTRA </i></b> senha forte, com mais de 8 letras, números e caracteres especiais, 
+		e que você possa se lembrar depois, pois se perder esta senha, seu certificado e, portanto,  
+		a sua credencial, serão definitivamente perdidos.</p>
+
+		<div class="divTable">
+			<div class="divTableBody">
+				<div class="divTableRow">
+					<div class="divTableCell">Senha</div>
+					<div class="divTableCell"><input id=txtEncpassphrase type=password size=30 onkeyup=javascript:encvalidate(); value=''></div>
+					<div class="divTableCell">(certifique-se de usar pelo menos 8 caracteres!)</div>
+				</div>
+				<br>
+				<div class="divTableRow">
+					<div class="divTableCell">Redigite a senha</div>
+					<div class="divTableCell"><input id=txtEncpassphraseretype type=password size=30 onkeyup=javascript:encvalidate(); value=''></div>
+					<div class="divTableCell"><span class=greenspan id=spnCheckretype></span></div>
+				</div>
+			</div>
+		</div>
+	
+		<div class=container>
+			<hr>
+		</div>
+		
+		<p> </p>
+		<div>
+			<div class=dropzone id="encdropzone" ondrop="drop_handler(event);" ondragover="dragover_handler(event);" ondragend="dragend_handler(event);">
+				<p>Você pode arrastar e soltar o PDF gerado aqui, 
+				ou <a onclick=javascript:encfileElem.click();>clicar aqui</a> para escolher o arquivo.</p>
+				<p><span id=spnencfilename></span></p>
+			</div>
+			<input type="file" id="encfileElem" style="display:none" onchange="selectfile(this.files)">
+		</div>
+
+			
+		<div class=container>
+			<hr>
+		</div>
+		<p> </p>
+
+		<div class="divTable">
+			<div class="divTableBody">
+				<div class="divTableRow">
+					<div class="divTableCell"><button id=btnEncrypt onclick=javascript:encryptfile(); disabled>Criptografar Arquivo</button></div>
+					<div class="divTableCell"><span id=spnEncstatus></span></div>
+				</div>
+			</div>
+		</div>
+		<br>
+		<div>
+			<a id=aEncsavefile hidden><button>Salve o arquivo criptografado em um local seguro</button></a>
+		</div>
+	
+		<p> </p>
+	</div>
+
+	<div class="container" id=divDecryptfile>
+		<h2>Decriptografar Arquivo</h2>
+		<p>Para decriptografar o arquivo você vai precisar se lembrar da senha usada no momento da criptografia.</p>
+
+		<div class="divTable">
+			<div class="divTableBody">
+				<div class="divTableRow">
+					<div class="divTableCell">Password</div>
+					<div class="divTableCell"><input id=txtDecpassphrase type=password size=30 onkeyup=javascript:decvalidate(); value=''></div>
+				</div>
+			</div>
+		</div>
+
+		<p> </p>
+
+		<div>
+				<div class=dropzone  id="decdropzone" ondrop="drop_handler(event);" ondragover="dragover_handler(event);" ondragend="dragend_handler(event);">
+					<p>Drag and drop file to be decrypted into this dropzone, or click <a role=button onclick=javascript:decfileElem.click();>here</a> to select file.</p>
+					<p><span id=spndecfilename></span></p>
+				</div>
+				<input type="file" id="decfileElem" style="display:none" onchange="selectfile(this.files)">
+		</div>
+
+		<p> </p>
+
+		<div class="divTable">
+			<div class="divTableBody">
+				<div class="divTableRow">
+					<div class="divTableCell"><button id=btnDecrypt onclick=javascript:decryptfile(); disabled>Decrypt File</button></div>
+					<div class="divTableCell"><span id=spnDecstatus></span></div>
+				</div>
+			</div>
+		</div>
+
+		<p> </p>
+
+		<div>
+			<a id=aDecsavefile hidden><button>Salve a ópia do arquivo decriptografado</button></a>
+		</div>
+	
+		<p> </p>
+	</div>
+</body>
+</html>
+
+<script>
+    $(function () {
+        //Change the key size value for new keys
+        $(".change-key-size").each(function (index, value) {
+            var el = $(value);
+            var keySize = el.attr('data-value');
+            el.click(function (e) {
+                var button = $('#key-size');
+                button.attr('data-value', keySize);
+                button.html(keySize + ' bits <span class="caret"></span>');
+                e.preventDefault();
+            });
+        });
+
+        // Execute when they click the button.
+        $('#execute').click(function () {
+
+            // Create the encryption object.
+            var crypt = new JSEncrypt();
+
+            // Set the private.
+            crypt.setPrivateKey($('#privatekey').val());
+            //return;
+            // If no public key is set then set it here...
+            var pubkey = $('#publickey').val();
+            if (!pubkey) {
+                $('#publickey').val(crypt.getPublicKey());
+            }
+
+            // Get the input and crypted values.
+            var input = $('#input').val();
+            var crypted = $('#crypted').val();
+
+            // Alternate the values.
+            if (input) {
+                $('#crypted').val(crypt.encrypt(input));
+                $('#input').val('');
+            }
+            else if (crypted) {
+                var decrypted = crypt.decrypt(crypted);
+                if (!decrypted)
+                    decrypted = 'This is a test!';
+                $('#input').val(decrypted);
+                $('#crypted').val('');
+            }
+        });
+
+        var generateKeys = function () {
+            var sKeySize = $('#key-size').attr('data-value');
+            var keySize = parseInt(sKeySize);
+            var crypt = new JSEncrypt({ default_key_size: keySize });
+            var async = $('#async-ck').is(':checked');
+            var dt = new Date();
+            var time = -(dt.getTime());
+            // if (async)
+            {
+                $('#time-report').text(' Gerando: .');
+                var load = setInterval(function () {
+                    var text = $('#time-report').text();
+                    $('#time-report').text(text + '.');
+                }, 500);
+                crypt.getKey(function () {
+                    clearInterval(load);
+                    dt = new Date();
+                    time += (dt.getTime());
+                    $('#time-report').text('Gerado em: ' + time + ' ms');
+                    $('#privatekey').val(crypt.getPrivateKey());
+                    $('#publickey').val(crypt.getPublicKey());
+                });
+                return;
+            }
+            crypt.getKey();
+            dt = new Date();
+            time += (dt.getTime());
+            $('#time-report').text('Gerado em: ' + time + ' ms');
+            $('#privatekey').val(crypt.getPrivateKey());
+            $('#publickey').val(crypt.getPublicKey());
+        };
+
+        // If they wish to generate new keys.
+        $('#generate').click(generateKeys);
+
+        // var keySize = 1024;
+        var ajax_url = "ajax-server-c.php";
+        var print_url = "imprimir.html";
+        $("#genkey").on("click", function (r) {
+            generateKeys();
+        });
+
+        $("#get").on("click", function (r) {
+            // alert( "Action: pubkey" + " - cnesID:" + '"' + $("#cnesID").val() + '"' + " - publickey:" + '"' + $("#publickey").val() + '"' );
+            $.post(ajax_url, { action: "pubkey",
+                               email: $("#inputEmail").val(),
+                               cpfID: $("#cpfID").val(),
+                               cnesID: $("#cnesID").val(),
+                               cnsID: $("#cnsID").val(),
+                               publickey: $("#publickey").val()
+                             }, function (r) { alert(r); }, "html"
+                  );
+            $.post(ajax_url, { action:"get", cpfID:$("#cpfID").val()}, function (endata) {
+                            $("#endata-get").val(endata);
+                            var obj = new JSEncrypt();
+                            obj.setPrivateKey($("#privatekey").val());
+                            var cleartext = obj.decrypt(endata);
+                            $("#cleartext").val(cleartext);
+            }, "html");
+        });
+
+        $("#print").on("click", function (r) {
+            $.post( ajax_url, { action:"print", cpfID:$("#cpfID").val()}, function( data ) {
+                // CRIA UM OBJETO WINDOW
+                var win = window.open('', '_blank', 'toolbar=0,location=0,menubar=0,height=700,width=700');
+				var dtatual = new Date();
+				var dia = String(dtatual.getDate()).padStart(2, '0');
+				var mes = String(dtatual.getMonth() + 1).padStart(2, '0');
+				var ano = dtatual.getFullYear();
+				var dataAtual = dia + '/' + mes + '/' + ano;
+                var email = $("#inputEmail").val();
+                var cpfID = $("#cpfID").val();
+                var cnesID = $("#cnesID").val();
+                var cnsID = $("#cnsID").val();
+                var publickey = $("#publickey").val();
+				var priv = $("#privatekey").val();
+				var pwd = $("#cleartext").val();
+				var repl = "$1" + priv + "$3";
+				var repl2 = "$1" + pwd + "$3";
+				var repl3 = "$1" + cpfID + "$3";
+				var repl4 = "$1" + dataAtual + "$3";
+				var dados = data.replace(/(.*)(@@privatekey@@)(.*)/, repl);
+				var dados2 = dados.replace(/(.*)(@@pwd@@)(.*)/, repl2);
+				dados = dados2.replace(/(.*)(@@cpf@@)(.*)/, repl3);
+				dados2 = dados.replace(/(.*)(@@data@@)(.*)/, repl4);
+                win.document.write(dados2);
+				win.document.body.style.cursor = 'wait';
+                win.document.close();                           // FECHA A JANELA
+				win.focus();
+                setTimeout(function(){
+                    win.print();                                // IMPRIME O CONTEUDO
+                }, 2000);                                       //wait 3 seconds
+				win.document.body.style.cursor = 'default';
+            }, "html" );
+        });
+
+        // Não queremos que já inicie gerando....
+        // generateKeys();
+    });
+</script>
+
+<script type="text/javascript">
+	var mode=null;
+	var objFile=null;
+	switchdiv('encrypt');
+
+	function switchdiv(t) {
+		if(t=='encrypt') {
+			divEncryptfile.style.display='block';
+			divDecryptfile.style.display='none';
+			btnDivEncrypt.disabled=true;
+			btnDivDecrypt.disabled=false;
+			mode='encrypt';
+		} else if(t=='decrypt') {
+			divEncryptfile.style.display='none';
+			divDecryptfile.style.display='block';
+			btnDivEncrypt.disabled=false;
+			btnDivDecrypt.disabled=true;
+			mode='decrypt';
+		}
+	}
+
+	function encvalidate() {
+		if(txtEncpassphrase.value.length>=8 && txtEncpassphrase.value==txtEncpassphraseretype.value) { 
+		  spnCheckretype.classList.add("greenspan");
+		  spnCheckretype.classList.remove("redspan");
+		  spnCheckretype.innerHTML='&#10004;';
+		} else { 
+		  spnCheckretype.classList.remove("greenspan");
+		  spnCheckretype.classList.add("redspan");
+  		  spnCheckretype.innerHTML='&#10006;';
+		}
+
+		if( txtEncpassphrase.value.length>=8 && txtEncpassphrase.value==txtEncpassphraseretype.value && objFile ) { btnEncrypt.disabled=false; } else { btnEncrypt.disabled=true; }
+	}
+
+	function decvalidate() {
+		if( txtDecpassphrase.value.length>0 && objFile ) { btnDecrypt.disabled=false; } else { btnDecrypt.disabled=true; }
+	}
+
+	//drag and drop functions:
+	//https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
+	function drop_handler(ev) {
+		console.log("Drop");
+		ev.preventDefault();
+		// If dropped items aren't files, reject them
+		var dt = ev.dataTransfer;
+		if (dt.items) {
+			// Use DataTransferItemList interface to access the file(s)
+			for (var i=0; i < dt.items.length; i++) {
+				if (dt.items[i].kind == "file") {
+					var f = dt.items[i].getAsFile();
+					console.log("... file[" + i + "].name = " + f.name);
+					objFile=f;
+				}
+			}
+		} else {
+			// Use DataTransfer interface to access the file(s)
+			for (var i=0; i < dt.files.length; i++) {
+				console.log("... file[" + i + "].name = " + dt.files[i].name);
+			}  
+			objFile=file[0];
+		}		 
+		displayfile()
+		if(mode=='encrypt') { encvalidate(); } else if(mode=='decrypt') { decvalidate(); }
+	}
+
+	function dragover_handler(ev) {
+		console.log("dragOver");
+		// Prevent default select and drag behavior
+		ev.preventDefault();
+	}
+
+	function dragend_handler(ev) {
+		console.log("dragEnd");
+		// Remove all of the drag data
+		var dt = ev.dataTransfer;
+		if (dt.items) {
+			// Use DataTransferItemList interface to remove the drag data
+			for (var i = 0; i < dt.items.length; i++) {
+				dt.items.remove(i);
+			}
+		} else {
+			// Use DataTransfer interface to remove the drag data
+			ev.dataTransfer.clearData();
+		}
+	}
+
+	function selectfile(Files) {
+		objFile=Files[0];
+		displayfile()
+		if(mode=='encrypt') { encvalidate(); } else if(mode=='decrypt') { decvalidate(); }
+	}
+
+	function displayfile() {
+		var s;
+		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+		var bytes=objFile.size;
+		var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+		if(i==0) { s=bytes + ' ' + sizes[i]; } else { s=(bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i]; }
+
+		if(mode=='encrypt') { 
+			spnencfilename.textContent=objFile.name + ' (' + s + ')'; 
+		} else if(mode=='decrypt') {  
+			spndecfilename.textContent=objFile.name + ' (' + s + ')'; 
+		} 
+	}
+
+	function readfile(file){
+		return new Promise((resolve, reject) => {
+			var fr = new FileReader();  
+			fr.onload = () => {
+				resolve(fr.result )
+			};
+			fr.readAsArrayBuffer(file);
+		});
+	}
+
+	async function encryptfile() {
+		btnEncrypt.disabled=true;
+
+		var plaintextbytes=await readfile(objFile)
+		.catch(function(err){
+			console.error(err);
+		});	
+		var plaintextbytes=new Uint8Array(plaintextbytes);
+
+		var pbkdf2iterations=10000;
+		var passphrasebytes=new TextEncoder("utf-8").encode(txtEncpassphrase.value);
+		var pbkdf2salt=window.crypto.getRandomValues(new Uint8Array(8));
+
+		var passphrasekey=await window.crypto.subtle.importKey('raw', passphrasebytes, {name: 'PBKDF2'}, false, ['deriveBits'])
+		.catch(function(err){
+			console.error(err);
+		});
+		console.log('passphrasekey imported');
+
+		var pbkdf2bytes=await window.crypto.subtle.deriveBits({"name": 'PBKDF2', "salt": pbkdf2salt, "iterations": pbkdf2iterations, "hash": 'SHA-256'}, passphrasekey, 384)		
+		.catch(function(err){
+			console.error(err);
+		});
+		console.log('pbkdf2bytes derived');
+		pbkdf2bytes=new Uint8Array(pbkdf2bytes);
+
+		keybytes=pbkdf2bytes.slice(0,32);
+		ivbytes=pbkdf2bytes.slice(32);
+
+		var key=await window.crypto.subtle.importKey('raw', keybytes, {name: 'AES-CBC', length: 256}, false, ['encrypt']) 
+		.catch(function(err){
+			console.error(err);
+		});
+		console.log('key imported');		
+
+		var cipherbytes=await window.crypto.subtle.encrypt({name: "AES-CBC", iv: ivbytes}, key, plaintextbytes)
+		.catch(function(err){
+			console.error(err);
+		});
+
+		if(!cipherbytes) {
+		 	spnEncstatus.classList.add("redspan");
+			spnEncstatus.innerHTML='<p>Erro criptografando arquivo. Veja mensagens de log na console.</p>';
+			return;
+		}
+
+		console.log('plaintext encrypted');
+		cipherbytes=new Uint8Array(cipherbytes);
+
+		var resultbytes=new Uint8Array(cipherbytes.length+16)
+		resultbytes.set(new TextEncoder("utf-8").encode('Salted__'));
+		resultbytes.set(pbkdf2salt, 8);
+		resultbytes.set(cipherbytes, 16);
+
+		var blob=new Blob([resultbytes], {type: 'application/download'});
+		var blobUrl=URL.createObjectURL(blob);
+		aEncsavefile.href=blobUrl;
+		aEncsavefile.download=objFile.name + '.enc';
+
+	 	spnEncstatus.classList.add("greenspan");
+		spnEncstatus.innerHTML='<p>Arquivo Criptografado.</p>';
+		aEncsavefile.hidden=false;
+	}
+
+	async function decryptfile() {
+		btnDecrypt.disabled=true;
+
+		var cipherbytes=await readfile(objFile)
+		.catch(function(err){
+			console.error(err);
+		});	
+		var cipherbytes=new Uint8Array(cipherbytes);
+
+		var pbkdf2iterations=10000;
+		var passphrasebytes=new TextEncoder("utf-8").encode(txtDecpassphrase.value);
+		var pbkdf2salt=cipherbytes.slice(8,16);
+
+
+		var passphrasekey=await window.crypto.subtle.importKey('raw', passphrasebytes, {name: 'PBKDF2'}, false, ['deriveBits'])
+		.catch(function(err){
+			console.error(err);
+
+		});
+		console.log('passphrasekey imported');
+
+		var pbkdf2bytes=await window.crypto.subtle.deriveBits({"name": 'PBKDF2', "salt": pbkdf2salt, "iterations": pbkdf2iterations, "hash": 'SHA-256'}, passphrasekey, 384)		
+		.catch(function(err){
+			console.error(err);
+		});
+		console.log('pbkdf2bytes derived');
+		pbkdf2bytes=new Uint8Array(pbkdf2bytes);
+
+		keybytes=pbkdf2bytes.slice(0,32);
+		ivbytes=pbkdf2bytes.slice(32);
+		cipherbytes=cipherbytes.slice(16);
+
+		var key=await window.crypto.subtle.importKey('raw', keybytes, {name: 'AES-CBC', length: 256}, false, ['decrypt']) 
+		.catch(function(err){
+			console.error(err);
+		});
+		console.log('key imported');		
+
+		var plaintextbytes=await window.crypto.subtle.decrypt({name: "AES-CBC", iv: ivbytes}, key, cipherbytes)
+		.catch(function(err){
+			console.error(err);
+		});
+
+		if(!plaintextbytes) {
+		 	spnDecstatus.classList.add("redspan");
+			spnDecstatus.innerHTML='<p>Erro decriptografndo.  Sua senha pode estar incorreta.</p>';
+			return;
+		}
+
+		console.log('ciphertext decrypted');
+		plaintextbytes=new Uint8Array(plaintextbytes);
+
+		var blob=new Blob([plaintextbytes], {type: 'application/download'});
+		var blobUrl=URL.createObjectURL(blob);
+		aDecsavefile.href=blobUrl;
+		aDecsavefile.download=objFile.name + '.dec';
+
+	 	spnDecstatus.classList.add("greenspan");
+		spnDecstatus.innerHTML='<p>Arquivo decriptogrfado.</p>';
+		aDecsavefile.hidden=false;
+	}
+
+</script>
